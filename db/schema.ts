@@ -24,3 +24,10 @@ export const events = sqliteTable("events", {
   metadataJson: text("metadata_json").notNull().default("{}"),
   createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 }, (table) => [index("idx_events_name_created_at").on(table.eventName, table.createdAt)]);
+
+export const newsletterSubscribers = sqliteTable("newsletter_subscribers", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  email: text("email").notNull().unique(),
+  source: text("source").notNull().default("homepage"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+}, (table) => [index("idx_newsletter_email").on(table.email)]);
