@@ -16,3 +16,10 @@ async function query<T>(graphql:string,variables:Record<string,unknown>={}):Prom
 export async function getShopifyProducts(){const data=await query<{products:{nodes:ShopifyProduct[]}}>(`query{products(first:50,sortKey:CREATED_AT,reverse:true){nodes{${fields}}}}`);return data.products.nodes}
 export async function getShopifyProduct(handle:string){const data=await query<{product:ShopifyProduct|null}>(`query Product($handle:String!){product(handle:$handle){${fields}}}`,{handle});return data.product}
 export const productPrice=(product:ShopifyProduct)=>Number(product.variants.nodes[0]?.price.amount||0);
+
+export async function createShopifyCheckout(lines:{merchandiseId:string;quantity:number}[]){
+ const data=await query<{cartCreate:{cart:{checkoutUrl:string}|null;userErrors:{message:string}[]}}>(`mutation CreateCart($lines:[CartLineInput!]!){cartCreate(input:{lines:$lines}){cart{checkoutUrl} userErrors{message}}}`,{lines});
+ const error=data.cartCreate.userErrors[0];
+ if(error||!data.cartCreate.cart)throw new Error(error?.message||"Không thể tạo giỏ hàng Shopify");
+ return data.cartCreate.cart.checkoutUrl;
+}

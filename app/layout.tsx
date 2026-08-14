@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./nav.css";
+import "./home-shopify.css";
 
 export const metadata: Metadata = {
   title: "humm. — Đèn cho những căn phòng vui hơn",

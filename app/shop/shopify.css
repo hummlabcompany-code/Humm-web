@@ -15,3 +15,8 @@
 .product-thumbnails button.active{border-color:var(--ink)}
 .product-thumbnails img{width:100%;height:100%;object-fit:cover}
 @media(max-width:800px){.shopify-pdp{grid-template-columns:1fr}}
+.cart-product-image,.summary-product-image{width:70px;height:70px;border-radius:12px;object-fit:cover;background:#eee}
+.summary-product-image{width:64px;height:64px}
+.shopify-checkout{display:block;text-align:center;width:100%;border:0;border-radius:99px;background:var(--ink);color:#fff;padding:16px;font:700 13px Manrope;cursor:pointer}
+.shopify-checkout:disabled{opacity:.55;cursor:wait}
+.shopify-checkout-card{background:#fffaf4;border-radius:18px;padding:24px;font-size:13px;line-height:1.7}
