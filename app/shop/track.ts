@@ -1,0 +1,1 @@
+export function track(eventName:string,productSlug?:string,metadata?:unknown){fetch("/api/events",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({eventName,productSlug,metadata}),keepalive:true}).catch(()=>{})}

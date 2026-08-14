@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1786678118822,
+      "tag": "0000_sharp_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1786678423338,
+      "tag": "0001_broad_fixer",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1786678440012,
+      "tag": "0002_colossal_sauron",
+      "breakpoints": true
+    }
+  ]
+}

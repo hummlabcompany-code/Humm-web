@@ -1,0 +1,5 @@
+import {env} from "cloudflare:workers";
+import {getDb} from "../../../db";
+import {events} from "../../../db/schema";
+const allowed=new Set(["product_view","add_to_cart","begin_checkout","place_order","wishlist","share_config","room_preview"]);
+export async function POST(request:Request){try{await env.DB.batch([env.DB.prepare(`CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, event_name TEXT NOT NULL, product_slug TEXT, metadata_json TEXT NOT NULL DEFAULT '{}', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP)`),env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_events_name_created_at ON events(event_name,created_at)`)]);const p=await request.json() as {eventName?:string;productSlug?:string;metadata?:unknown};if(!p.eventName||!allowed.has(p.eventName))return Response.json({error:"invalid event"},{status:400});await getDb().insert(events).values({eventName:p.eventName,productSlug:p.productSlug??null,metadataJson:JSON.stringify(p.metadata??{})});return new Response(null,{status:204})}catch{return new Response(null,{status:204})}}
