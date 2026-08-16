@@ -19,8 +19,10 @@
 
 body{font-family:var(--font-body)}
 button,input,select,textarea{font-family:var(--font-system)}
-.logo{font-family:var(--font-arcade);font-weight:400;letter-spacing:-.04em;text-transform:uppercase}
+.logo{font-family:var(--font-display);font-weight:800;letter-spacing:-.08em;text-transform:uppercase}
+.logo span{color:#2453aa}
 .hero h1,.section-heading h2,.manifesto h2,.newsletter h2,.shop-hero h1,.pdp-info h1,.product-info h2,.shop-promise h3,.trust-page h1,.trust-page h2,.not-found h1{font-family:var(--font-display);font-weight:700}
-.eyebrow,.number,.new-tag,.catalog-bar,.mini-note,.floating-tag,.marquee,.product strong,.pdp-price,.shop-promise span{font-family:var(--font-mono)}
+.eyebrow,.number,.new-tag,.catalog-bar,.mini-note,.product strong,.pdp-price,.shop-promise span,.top-tabs{font-family:var(--font-mono)}
+.floating-tag,.marquee,.starburst{font-family:var(--font-arcade);font-weight:400}
 .product-specs,.newsletter-notice,footer,.shopify-message,.pdp-story{font-family:var(--font-code)}
-.cart,.button,.round-link,.add-button,.shopify-checkout,.top-tabs{font-family:var(--font-system)}
+.cart,.button,.round-link,.add-button,.shopify-checkout{font-family:var(--font-system)}
