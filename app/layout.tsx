@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./fonts.css";
 import "./nav.css";
 import "./home-shopify.css";
 
