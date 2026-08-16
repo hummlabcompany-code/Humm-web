@@ -6,4 +6,4 @@
 - Wordmark and arcade accents: **Arcade Among 1**
 - Interface controls and fallback: **Arial**
 
-`Arcade Among 1` is registered as a local font. Add the licensed `.woff2` file to `public/fonts/` when available, then update `app/fonts.css` so every visitor receives the same wordmark rendering.
+`Arcade Among 1` is self-hosted from `public/fonts/arcade-among-1.ttf`, so every visitor receives the same wordmark rendering.
