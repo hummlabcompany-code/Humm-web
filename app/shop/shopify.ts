@@ -3,11 +3,14 @@ export const SHOPIFY_STOREFRONT_TOKEN = "2eaff3d2bc8f228d541e0ddb39802e57";
 
 export type Money = { amount: string; currencyCode: string };
 export type ShopifyImage = { url: string; altText: string | null; width: number | null; height: number | null };
+export type ShopifyModel3dSource = { url: string; format: string; mimeType: string };
+export type ShopifyModel3d = { id: string; mediaContentType: "MODEL_3D"; alt: string | null; previewImage: ShopifyImage | null; sources: ShopifyModel3dSource[] };
 export type ShopifyVariant = { id: string; title: string; availableForSale: boolean; quantityAvailable: number | null; price: Money; selectedOptions: { name: string; value: string }[] };
 export type ShopifyProduct = {
   id: string; handle: string; title: string; description: string; availableForSale: boolean;
   createdAt: string; productType: string; tags: string[]; seo: { title: string | null; description: string | null };
   featuredImage: ShopifyImage | null; images: { nodes: ShopifyImage[] }; variants: { nodes: ShopifyVariant[] };
+  media?: { nodes: ShopifyModel3d[] };
   size: { value: string } | null; material: { value: string } | null; light: { value: string } | null;
   printTime: { value: string } | null; warranty: { value: string } | null;
 };
@@ -24,6 +27,9 @@ const productFields = `id handle title description availableForSale createdAt pr
  size:metafield(namespace:"custom",key:"size"){value} material:metafield(namespace:"custom",key:"material"){value}
  light:metafield(namespace:"custom",key:"light"){value} printTime:metafield(namespace:"custom",key:"print_time"){value}
  warranty:metafield(namespace:"custom",key:"warranty"){value}`;
+const productDetailFields = `${productFields}
+ media(first:20){nodes{mediaContentType alt previewImage{url altText width height}
+  ... on Model3d{id sources{url format mimeType}}}}`;
 const cartFields = `id checkoutUrl totalQuantity cost{subtotalAmount{amount currencyCode}} lines(first:100){nodes{id quantity merchandise{... on ProductVariant{id title availableForSale quantityAvailable price{amount currencyCode} selectedOptions{name value} product{handle title featuredImage{url altText width height}}}}}}`;
 
 async function query<T>(graphql: string, variables: Record<string, unknown> = {}): Promise<T> {
@@ -61,10 +67,11 @@ export async function getShopifyProducts() {
   return products;
 }
 export async function getShopifyProduct(handle: string) {
-  const data = await query<{ product: ShopifyProduct | null }>(`query Product($handle:String!){product(handle:$handle){${productFields}}}`, { handle });
+  const data = await query<{ product: ShopifyProduct | null }>(`query Product($handle:String!){product(handle:$handle){${productDetailFields}}}`, { handle });
   return data.product;
 }
 export const productPrice = (product: ShopifyProduct) => Number(product.variants.nodes[0]?.price.amount || 0);
+export const productModel = (product: ShopifyProduct) => product.media?.nodes.find(media => media.mediaContentType === "MODEL_3D") || null;
 
 export async function getShopifyCart(id: string) {
   const data = await query<{ cart: ShopifyCart | null }>(`query Cart($id:ID!){cart(id:$id){${cartFields}}}`, { id });

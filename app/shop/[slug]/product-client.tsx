@@ -1,14 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useCart } from "../cart";
 import { money } from "../products";
-import { productPrice, ShopifyProduct, ShopifyVariant } from "../shopify";
+import { productModel, productPrice, ShopifyProduct, ShopifyVariant } from "../shopify";
 import { track } from "../track";
+import ProductModelViewer, { HummModelViewerElement } from "./product-model-viewer";
 
 export default function ProductClient({ product, relatedProducts }: { product: ShopifyProduct; relatedProducts: ShopifyProduct[] }) {
   const [variant, setVariant] = useState<ShopifyVariant | null>(product.variants.nodes[0] || null);
   const [imageIndex, setImageIndex] = useState(0);
+  const model = productModel(product);
+  const glbSource = model?.sources.find(source => source.format.toLowerCase() === "glb" || source.mimeType === "model/gltf-binary");
+  const usdzSource = model?.sources.find(source => source.format.toLowerCase() === "usdz" || source.mimeType === "model/vnd.usdz+zip");
+  const hasModel = !!glbSource;
+  const [mediaMode, setMediaMode] = useState<"image" | "model">(product.images.nodes.length || !hasModel ? "image" : "model");
+  const [modelReady, setModelReady] = useState(false);
+  const [modelError, setModelError] = useState(false);
+  const [lit, setLit] = useState(false);
+  const [arMessage, setArMessage] = useState("");
   const { items, setOpen, add, busy, error } = useCart();
 
   useEffect(() => { track("product_view", product.handle); }, [product.handle]);
@@ -16,6 +26,7 @@ export default function ProductClient({ product, relatedProducts }: { product: S
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
   const images = product.images.nodes;
   const currentImage = images[imageIndex];
+  const viewerId = `humm-model-${product.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
   const available = !!variant?.availableForSale;
   const optionNames = [...new Set(product.variants.nodes.flatMap(item => item.selectedOptions.map(option => option.name)))].filter(name => name !== "Title");
   const specs = [
@@ -35,6 +46,24 @@ export default function ProductClient({ product, relatedProducts }: { product: S
     if (next) setVariant(next);
   }
 
+  const handleModelError = useCallback(() => {
+    setModelError(true);
+    setArMessage("Mô hình 3D đang được Shopify xử lý. Bạn thử lại sau nhé.");
+  }, []);
+
+  async function openRoomPreview() {
+    setMediaMode("model");
+    setArMessage("");
+    track("ar_open", product.handle);
+    const viewer = document.getElementById(viewerId) as HummModelViewerElement | null;
+    if (!viewer?.canActivateAR) {
+      setArMessage("Bạn đang ở chế độ xem 3D. Mở trang này trên điện thoại hỗ trợ AR để ướm đèn bằng camera.");
+      return;
+    }
+    try { await viewer.activateAR(); }
+    catch { setArMessage("Thiết bị chưa thể mở camera AR. Bạn vẫn có thể xoay và xem đèn ở chế độ 3D."); }
+  }
+
   return <main className="shop-page">
     <nav className="nav shop-nav" aria-label="Điều hướng chính">
       <a className="logo" href="/">humm<span>.</span></a>
@@ -51,12 +80,21 @@ export default function ProductClient({ product, relatedProducts }: { product: S
     </nav>
 
     <section className="pdp shopify-pdp">
-      <div className={`pdp-visual ${!currentImage ? "empty-product-image" : ""}`}>
+      <div className={`pdp-visual ${!currentImage && !hasModel ? "empty-product-image" : ""} ${mediaMode === "model" ? "showing-model" : ""}`}>
         <a className="back-shop" href="/shop">← Tất cả sản phẩm</a>
-        {currentImage
-          ? <img className="pdp-product-image" src={currentImage.url} alt={currentImage.altText || product.title} />
-          : <span className="media-placeholder">Ảnh sản phẩm đang cập nhật</span>}
-        {images.length > 1 && <button className="light-switch" onClick={() => setImageIndex(index => index === 0 ? 1 : 0)} aria-label="Chuyển giữa ảnh đèn tắt và bật"><i className={imageIndex === 1 ? "on" : ""} />{imageIndex === 0 ? "Đèn tắt" : "Đèn bật"}</button>}
+        {hasModel && <div className="media-tabs" role="tablist" aria-label="Chế độ xem sản phẩm"><button type="button" role="tab" aria-selected={mediaMode === "image"} className={mediaMode === "image" ? "active" : ""} onClick={() => setMediaMode("image")}>Ảnh</button><button type="button" role="tab" aria-selected={mediaMode === "model"} className={mediaMode === "model" ? "active" : ""} onClick={() => { setMediaMode("model"); track("model_view", product.handle); }}>Xem 3D</button></div>}
+        <div className={`media-layer image-layer ${mediaMode === "image" ? "active" : ""}`} aria-hidden={mediaMode !== "image"}>
+          {currentImage
+            ? <img className="pdp-product-image" src={currentImage.url} alt={currentImage.altText || product.title} />
+            : <span className="media-placeholder">Ảnh sản phẩm đang cập nhật</span>}
+        </div>
+        {hasModel && <div className={`media-layer model-layer ${mediaMode === "model" ? "active" : ""}`} aria-hidden={mediaMode !== "model"}>
+          <div className={`model-glow ${lit ? "on" : ""}`} aria-hidden="true" />
+          <ProductModelViewer id={viewerId} src={glbSource!.url} iosSrc={usdzSource?.url} poster={model?.previewImage?.url || currentImage?.url} alt={model?.alt || `Mô hình 3D ${product.title}`} lit={lit} active={mediaMode === "model"} onReady={() => { setModelReady(true); setModelError(false); }} onError={handleModelError} />
+          <p className="model-instruction">Kéo để xoay · chụm để phóng to</p>
+        </div>}
+        {mediaMode === "image" && images.length > 1 && <button className="light-switch" onClick={() => setImageIndex(index => index === 0 ? 1 : 0)} aria-label="Chuyển giữa ảnh đèn tắt và bật"><i className={imageIndex === 1 ? "on" : ""} />{imageIndex === 0 ? "Đèn tắt" : "Đèn bật"}</button>}
+        {mediaMode === "model" && hasModel && <button className="light-switch" onClick={() => setLit(value => !value)} aria-pressed={lit}><i className={lit ? "on" : ""} />{lit ? "Đèn bật" : "Đèn tắt"}</button>}
       </div>
       <div className="pdp-info">
         <p className="eyebrow">3D printed companion</p>
@@ -68,6 +106,7 @@ export default function ProductClient({ product, relatedProducts }: { product: S
           <div className="variant-options">{[...new Set(product.variants.nodes.flatMap(item => item.selectedOptions.filter(option => option.name === name).map(option => option.value)))].map(value => <button type="button" className={variant?.selectedOptions.some(option => option.name === name && option.value === value) ? "selected" : ""} onClick={() => chooseOption(name, value)} key={value}>{value}</button>)}</div>
         </fieldset>)}
         <button className="add-button sticky-mobile-add" disabled={!available || busy} onClick={() => variant && add(variant.id, product.handle)}>{busy ? "Đang thêm…" : available ? "Thêm vào giỏ" : "Tạm hết hàng"}<span>{available && !busy ? "+" : ""}</span></button>
+        {hasModel && <div className="room-preview-block"><button type="button" className="room-preview-button" onClick={openRoomPreview} disabled={modelError || !modelReady}><span>✦</span>{modelError ? "3D đang được xử lý" : modelReady ? "Ướm đèn trong phòng" : "Đang chuẩn bị 3D…"}<b>AR</b></button><p>Điện thoại hỗ trợ AR sẽ mở camera. Máy tính chuyển sang chế độ xoay 3D.</p>{arMessage && <p className="ar-message" aria-live="polite">{arMessage}</p>}</div>}
         {error && <p className="form-error" role="alert">{error}</p>}
         {specs.length > 0 && <dl className="product-specs">{specs.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>}
         {images.length > 1 && <div className="product-thumbnails">{images.map((image, index) => <button type="button" aria-label={`Xem ảnh ${index + 1}`} className={index === imageIndex ? "active" : ""} onClick={() => setImageIndex(index)} key={image.url}><img src={image.url} alt={image.altText || `${product.title} ${index + 1}`} /></button>)}</div>}
