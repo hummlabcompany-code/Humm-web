@@ -44,8 +44,21 @@ function mutationResult<T extends { cart: ShopifyCart | null; userErrors: { mess
 }
 
 export async function getShopifyProducts() {
-  const data = await query<{ products: { nodes: ShopifyProduct[] } }>(`query{products(first:50,sortKey:CREATED_AT,reverse:true){nodes{${productFields}}}}`);
-  return data.products.nodes;
+  const products: ShopifyProduct[] = [];
+  let cursor: string | null = null;
+  let hasNextPage = true;
+
+  while (hasNextPage && products.length < 250) {
+    const data: { products: { nodes: ShopifyProduct[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } } = await query(
+      `query Products($cursor:String){products(first:50,after:$cursor,sortKey:CREATED_AT,reverse:true){nodes{${productFields}} pageInfo{hasNextPage endCursor}}}`,
+      { cursor },
+    );
+    products.push(...data.products.nodes);
+    hasNextPage = data.products.pageInfo.hasNextPage;
+    cursor = data.products.pageInfo.endCursor;
+  }
+
+  return products;
 }
 export async function getShopifyProduct(handle: string) {
   const data = await query<{ product: ShopifyProduct | null }>(`query Product($handle:String!){product(handle:$handle){${productFields}}}`, { handle });

@@ -2,6 +2,36 @@ import NewsletterForm from "./newsletter-form";
 import { getShopifyProducts } from "./shop/shopify";
 
 export default async function Home() {
-  const products = await getShopifyProducts().catch(() => []); const featured = products.find(x => x.featuredImage) || null;
-  return <main><nav className="nav" aria-label="Điều hướng chính"><a className="logo" href="#top">humm<span>.</span></a><div className="top-tabs"><a className="active" href="/" aria-current="page">Trang chủ</a><a href="/shop">Cửa hàng</a></div><a className="cart" href="/shop">Mua đèn <span>↗</span></a></nav><section className="hero" id="top"><div className="hero-copy"><p className="eyebrow">3D printed lights · made in Sài Gòn</p><h1>Đừng để căn phòng<br />im lặng quá lâu.</h1><p className="lead">Những chiếc đèn in 3D đầy màu sắc, sinh ra để đánh thức góc nhà quen thuộc — và cả inner child của bạn.</p><a className="button" href="/shop">Khám phá bộ đèn <span>↗</span></a><div className="mini-note"><i>✦</i> Sản phẩm, giá và tồn kho được đồng bộ từ Shopify</div></div><div className={`hero-art ${featured?.featuredImage ? "has-real-product" : ""}`}>{featured?.featuredImage && <a className="hero-product-link" href={`/shop/${encodeURIComponent(featured.handle)}`}><img className="hero-product-image" src={featured.featuredImage.url} alt={featured.featuredImage.altText || featured.title} /></a>}<div className="spark one">✦</div><div className="spark two">✦</div><span className="floating-tag">say hello<br />to happy.</span></div></section><section className="marquee"><div>PLAY IS SERIOUS BUSINESS <em>✦</em> PLAY IS SERIOUS BUSINESS <em>✦</em> PLAY IS SERIOUS BUSINESS</div></section><section className="manifesto" id="story"><div className="starburst">humm.<br /><span>humm.</span><br />humm.</div><div><p className="eyebrow">a tiny rebellion</p><h2>Thiết kế không cần<br />nghiêm túc mới đẹp.</h2><p>Chúng mình tạo ra đồ vật có cảm xúc cho những không gian thành thị hay bị lãng quên. Một đường cong ngộ nghĩnh, một màu hồng không xin lỗi — đôi khi chỉ thế là đủ để nhà bạn thở phào.</p><a href="/shop">Ghé cửa hàng <span>→</span></a></div></section><section className="newsletter"><div><p className="eyebrow">stay in the loop</p><h2>Thư tình từ humm.</h2></div><NewsletterForm /></section><footer><a className="logo" href="#top">humm<span>.</span></a><p>Made slowly, for joyful homes.</p><div><a href="/shop">Cửa hàng</a><a href="/mua-hang-an-tam">Thông tin mua hàng</a></div></footer></main>;
+  const products = await getShopifyProducts().catch(() => []);
+  const featured = products.find(product => product.featuredImage) || null;
+  const websiteJsonLd = { "@context": "https://schema.org", "@type": "WebSite", name: "humm.", url: "https://humm-store.customkeyrambitvn.chatgpt.site", inLanguage: "vi-VN" };
+
+  return <main>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c") }} />
+    <nav className="nav" aria-label="Điều hướng chính">
+      <a className="logo" href="#top">humm<span>.</span></a>
+      <div className="top-tabs"><a className="active" href="/" aria-current="page">Trang chủ</a><a href="/shop">Cửa hàng</a></div>
+      <a className="cart" href="/shop">Mua đèn <span>↗</span></a>
+    </nav>
+    <section className="hero" id="top">
+      <div className="hero-copy">
+        <p className="eyebrow">3D printed lights · made in Sài Gòn</p>
+        <h1>Đừng để căn phòng<br />im lặng quá lâu.</h1>
+        <p className="lead">Những chiếc đèn in 3D đầy màu sắc, sinh ra để đánh thức góc nhà quen thuộc — và cả inner child của bạn.</p>
+        <a className="button" href="/shop">Khám phá bộ đèn <span>↗</span></a>
+        <div className="mini-note"><i>✦</i> Sản phẩm, giá và tồn kho được đồng bộ từ Shopify</div>
+      </div>
+      <div className={`hero-art ${featured?.featuredImage ? "has-real-product" : ""}`}>
+        {featured?.featuredImage && <a className="hero-product-link" href={`/shop/${encodeURIComponent(featured.handle)}`}><img className="hero-product-image" src={featured.featuredImage.url} alt={featured.featuredImage.altText || featured.title} /></a>}
+        <div className="spark one">✦</div><div className="spark two">✦</div><span className="floating-tag">say hello<br />to happy.</span>
+      </div>
+    </section>
+    <section className="marquee"><div>PLAY IS SERIOUS BUSINESS <em>✦</em> PLAY IS SERIOUS BUSINESS <em>✦</em> PLAY IS SERIOUS BUSINESS</div></section>
+    <section className="manifesto" id="story">
+      <div className="starburst">humm.<br /><span>humm.</span><br />humm.</div>
+      <div><p className="eyebrow">a tiny rebellion</p><h2>Thiết kế không cần<br />nghiêm túc mới đẹp.</h2><p>Chúng mình tạo ra đồ vật có cảm xúc cho những không gian thành thị hay bị lãng quên. Một đường cong ngộ nghĩnh, một màu hồng không xin lỗi — đôi khi chỉ thế là đủ để nhà bạn thở phào.</p><a href="/shop">Ghé cửa hàng <span>→</span></a></div>
+    </section>
+    <section className="newsletter"><div><p className="eyebrow">stay in the loop</p><h2>Thư tình từ humm.</h2></div><NewsletterForm /></section>
+    <footer><a className="logo" href="#top">humm<span>.</span></a><p>Made slowly, for joyful homes.</p><div><a href="/shop">Cửa hàng</a><a href="/mua-hang-an-tam">Thông tin mua hàng</a></div></footer>
+  </main>;
 }
