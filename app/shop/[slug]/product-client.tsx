@@ -3,14 +3,25 @@
 import { useCallback, useEffect, useState } from "react";
 import { useCart } from "../cart";
 import { money } from "../products";
-import { productModel, productPrice, ShopifyProduct, ShopifyVariant } from "../shopify";
+import { productModel, productPrice, ShopifyModel3d, ShopifyProduct, ShopifyVariant } from "../shopify";
 import { track } from "../track";
 import ProductModelViewer, { HummModelViewerElement } from "./product-model-viewer";
+
+const HUMM_DEMO_CUBE: ShopifyModel3d = {
+  id: "humm-demo-cube-20cm",
+  mediaContentType: "MODEL_3D",
+  alt: "Khối lập phương mẫu màu coral, cạnh 20 cm",
+  previewImage: null,
+  sources: [{ url: "/models/humm-cube-20cm.glb", format: "glb", mimeType: "model/gltf-binary" }],
+};
 
 export default function ProductClient({ product, relatedProducts }: { product: ShopifyProduct; relatedProducts: ShopifyProduct[] }) {
   const [variant, setVariant] = useState<ShopifyVariant | null>(product.variants.nodes[0] || null);
   const [imageIndex, setImageIndex] = useState(0);
-  const model = productModel(product);
+  const shopifyModel = productModel(product);
+  const demoModel = product.handle === "den-sang-tạo" ? HUMM_DEMO_CUBE : null;
+  const model = shopifyModel || demoModel;
+  const isDemoModel = model?.id === HUMM_DEMO_CUBE.id;
   const glbSource = model?.sources.find(source => source.format.toLowerCase() === "glb" || source.mimeType === "model/gltf-binary");
   const usdzSource = model?.sources.find(source => source.format.toLowerCase() === "usdz" || source.mimeType === "model/vnd.usdz+zip");
   const hasModel = !!glbSource;
@@ -91,6 +102,7 @@ export default function ProductClient({ product, relatedProducts }: { product: S
         {hasModel && <div className={`media-layer model-layer ${mediaMode === "model" ? "active" : ""}`} aria-hidden={mediaMode !== "model"}>
           <div className={`model-glow ${lit ? "on" : ""}`} aria-hidden="true" />
           <ProductModelViewer id={viewerId} src={glbSource!.url} iosSrc={usdzSource?.url} poster={model?.previewImage?.url || currentImage?.url} alt={model?.alt || `Mô hình 3D ${product.title}`} lit={lit} active={mediaMode === "model"} onReady={() => { setModelReady(true); setModelError(false); }} onError={handleModelError} />
+          {isDemoModel && <span className="model-demo-badge">Model mẫu · 20 × 20 × 20 cm</span>}
           <p className="model-instruction">Kéo để xoay · chụm để phóng to</p>
         </div>}
         {mediaMode === "image" && images.length > 1 && <button className="light-switch" onClick={() => setImageIndex(index => index === 0 ? 1 : 0)} aria-label="Chuyển giữa ảnh đèn tắt và bật"><i className={imageIndex === 1 ? "on" : ""} />{imageIndex === 0 ? "Đèn tắt" : "Đèn bật"}</button>}
@@ -106,7 +118,7 @@ export default function ProductClient({ product, relatedProducts }: { product: S
           <div className="variant-options">{[...new Set(product.variants.nodes.flatMap(item => item.selectedOptions.filter(option => option.name === name).map(option => option.value)))].map(value => <button type="button" className={variant?.selectedOptions.some(option => option.name === name && option.value === value) ? "selected" : ""} onClick={() => chooseOption(name, value)} key={value}>{value}</button>)}</div>
         </fieldset>)}
         <button className="add-button sticky-mobile-add" disabled={!available || busy} onClick={() => variant && add(variant.id, product.handle)}>{busy ? "Đang thêm…" : available ? "Thêm vào giỏ" : "Tạm hết hàng"}<span>{available && !busy ? "+" : ""}</span></button>
-        {hasModel && <div className="room-preview-block"><button type="button" className="room-preview-button" onClick={openRoomPreview} disabled={modelError || !modelReady}><span>✦</span>{modelError ? "3D đang được xử lý" : modelReady ? "Ướm đèn trong phòng" : "Đang chuẩn bị 3D…"}<b>AR</b></button><p>Điện thoại hỗ trợ AR sẽ mở camera. Máy tính chuyển sang chế độ xoay 3D.</p>{arMessage && <p className="ar-message" aria-live="polite">{arMessage}</p>}</div>}
+        {hasModel && <div className="room-preview-block"><button type="button" className="room-preview-button" onClick={openRoomPreview} disabled={modelError || !modelReady}><span>✦</span>{modelError ? "3D đang được xử lý" : modelReady ? isDemoModel ? "Ướm khối mẫu 20 cm" : "Ướm đèn trong phòng" : "Đang chuẩn bị 3D…"}<b>AR</b></button><p>{isDemoModel ? "Khối mẫu dùng để kiểm tra kích thước AR. Model Shopify thật sẽ tự thay thế khối này." : "Điện thoại hỗ trợ AR sẽ mở camera. Máy tính chuyển sang chế độ xoay 3D."}</p>{arMessage && <p className="ar-message" aria-live="polite">{arMessage}</p>}</div>}
         {error && <p className="form-error" role="alert">{error}</p>}
         {specs.length > 0 && <dl className="product-specs">{specs.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>}
         {images.length > 1 && <div className="product-thumbnails">{images.map((image, index) => <button type="button" aria-label={`Xem ảnh ${index + 1}`} className={index === imageIndex ? "active" : ""} onClick={() => setImageIndex(index)} key={image.url}><img src={image.url} alt={image.altText || `${product.title} ${index + 1}`} /></button>)}</div>}

@@ -10,6 +10,9 @@ type ModelViewerAttributes = React.HTMLAttributes<HTMLElement> & {
   ar: boolean;
   "ios-src"?: string;
   "ar-modes": string;
+  "ar-scale": string;
+  "ar-placement": string;
+  "xr-environment": boolean;
   "camera-controls": boolean;
   "auto-rotate": boolean;
   "shadow-intensity": string;
@@ -63,6 +66,9 @@ export default function ProductModelViewer({
     ar: true,
     "ios-src": iosSrc,
     "ar-modes": "webxr scene-viewer quick-look",
+    "ar-scale": "fixed",
+    "ar-placement": "floor",
+    "xr-environment": true,
     "camera-controls": true,
     "auto-rotate": active,
     "shadow-intensity": lit ? "0.7" : "1.25",
