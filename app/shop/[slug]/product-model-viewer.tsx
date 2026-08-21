@@ -1,7 +1,7 @@
 "use client";
 
 import type { ModelViewerElement } from "@google/model-viewer";
-import { createElement, useEffect, useState } from "react";
+import { createElement, useEffect, useRef, useState } from "react";
 
 type ModelViewerAttributes = React.HTMLAttributes<HTMLElement> & {
   src: string;
@@ -48,12 +48,35 @@ export default function ProductModelViewer({
   onError: () => void;
 }) {
   const [registered, setRegistered] = useState(false);
+  const viewerRef = useRef<ModelViewerElement | null>(null);
+  const onReadyRef = useRef(onReady);
+  const onErrorRef = useRef(onError);
+
+  useEffect(() => { onReadyRef.current = onReady; }, [onReady]);
+  useEffect(() => { onErrorRef.current = onError; }, [onError]);
 
   useEffect(() => {
     let mounted = true;
-    import("@google/model-viewer").then(() => { if (mounted) setRegistered(true); }).catch(onError);
+    import("@google/model-viewer").then(() => { if (mounted) setRegistered(true); }).catch(() => onErrorRef.current());
     return () => { mounted = false; };
-  }, [onError]);
+  }, []);
+
+  useEffect(() => {
+    if (!registered) return;
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+
+    const handleLoad = () => onReadyRef.current();
+    const handleError = () => onErrorRef.current();
+    viewer.addEventListener("load", handleLoad);
+    viewer.addEventListener("error", handleError);
+    if (viewer.loaded) handleLoad();
+
+    return () => {
+      viewer.removeEventListener("load", handleLoad);
+      viewer.removeEventListener("error", handleError);
+    };
+  }, [registered, src]);
 
   if (!registered) return <div className="model-loading" role="status">Đang chuẩn bị mô hình 3D…</div>;
 
@@ -78,9 +101,7 @@ export default function ProductModelViewer({
     "interaction-prompt": "auto",
     "touch-action": "pan-y",
     reveal: "auto",
-    onLoad: onReady,
-    onError,
   };
 
-  return createElement("model-viewer", attributes);
+  return createElement("model-viewer", { ...attributes, ref: viewerRef });
 }
