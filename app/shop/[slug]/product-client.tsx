@@ -103,10 +103,12 @@ export default function ProductClient({ product, relatedProducts }: { product: S
           <div className={`model-glow ${lit ? "on" : ""}`} aria-hidden="true" />
           <ProductModelViewer id={viewerId} src={glbSource!.url} iosSrc={usdzSource?.url} poster={model?.previewImage?.url || currentImage?.url} alt={model?.alt || `Mô hình 3D ${product.title}`} lit={lit} active={mediaMode === "model"} onReady={() => { setModelReady(true); setModelError(false); }} onError={handleModelError} />
           {isDemoModel && <span className="model-demo-badge">Model mẫu · 20 × 20 × 20 cm</span>}
-          <p className="model-instruction">Kéo để xoay · chụm để phóng to</p>
+          {!arMessage && <p className="model-instruction">Kéo để xoay · chụm để phóng to</p>}
         </div>}
         {mediaMode === "image" && images.length > 1 && <button className="light-switch" onClick={() => setImageIndex(index => index === 0 ? 1 : 0)} aria-label="Chuyển giữa ảnh đèn tắt và bật"><i className={imageIndex === 1 ? "on" : ""} />{imageIndex === 0 ? "Đèn tắt" : "Đèn bật"}</button>}
         {mediaMode === "model" && hasModel && <button className="light-switch" onClick={() => setLit(value => !value)} aria-pressed={lit}><i className={lit ? "on" : ""} />{lit ? "Đèn bật" : "Đèn tắt"}</button>}
+        {mediaMode === "model" && hasModel && <button type="button" className="mobile-ar-button" onClick={openRoomPreview} disabled={modelError || !modelReady}><span aria-hidden="true">✦</span><strong>{modelError ? "3D đang được xử lý" : modelReady ? isDemoModel ? "Ướm khối mẫu 20 cm" : "Ướm đèn trong phòng" : "Đang chuẩn bị 3D…"}</strong><b>AR</b></button>}
+        {mediaMode === "model" && arMessage && <p className="mobile-ar-message" aria-live="polite">{arMessage}</p>}
       </div>
       <div className="pdp-info">
         <p className="eyebrow">3D printed companion</p>
