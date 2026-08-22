@@ -12,10 +12,7 @@ const HUMM_DEMO_CUBE: ShopifyModel3d = {
   mediaContentType: "MODEL_3D",
   alt: "Khối lập phương mẫu màu coral, cạnh 20 cm",
   previewImage: null,
-  sources: [
-    { url: "/models/humm-cube-20cm.glb", format: "glb", mimeType: "model/gltf-binary" },
-    { url: "/api/ar/humm-cube-20cm.usdz", format: "usdz", mimeType: "model/vnd.usdz+zip" },
-  ],
+  sources: [{ url: "/models/humm-cube-20cm.glb", format: "glb", mimeType: "model/gltf-binary" }],
 };
 
 export default function ProductClient({ product, relatedProducts }: { product: ShopifyProduct; relatedProducts: ShopifyProduct[] }) {
@@ -33,18 +30,13 @@ export default function ProductClient({ product, relatedProducts }: { product: S
   const [modelError, setModelError] = useState(false);
   const [lit, setLit] = useState(false);
   const [arMessage, setArMessage] = useState("");
-  const [isIOS, setIsIOS] = useState(false);
   const { items, setOpen, add, busy, error } = useCart();
 
   useEffect(() => { track("product_view", product.handle); }, [product.handle]);
-  useEffect(() => {
-    setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
-  }, []);
 
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
   const images = product.images.nodes;
   const currentImage = images[imageIndex];
-  const quickLookUrl = usdzSource ? `${usdzSource.url}#allowsContentScaling=0` : null;
   const viewerId = `humm-model-${product.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
   const available = !!variant?.availableForSale;
   const optionNames = [...new Set(product.variants.nodes.flatMap(item => item.selectedOptions.map(option => option.name)))].filter(name => name !== "Title");
@@ -115,9 +107,7 @@ export default function ProductClient({ product, relatedProducts }: { product: S
         </div>}
         {mediaMode === "image" && images.length > 1 && <button className="light-switch" onClick={() => setImageIndex(index => index === 0 ? 1 : 0)} aria-label="Chuyển giữa ảnh đèn tắt và bật"><i className={imageIndex === 1 ? "on" : ""} />{imageIndex === 0 ? "Đèn tắt" : "Đèn bật"}</button>}
         {mediaMode === "model" && hasModel && <button className="light-switch" onClick={() => setLit(value => !value)} aria-pressed={lit}><i className={lit ? "on" : ""} />{lit ? "Đèn bật" : "Đèn tắt"}</button>}
-        {mediaMode === "model" && hasModel && (isIOS && quickLookUrl
-          ? <a className="mobile-ar-button" rel="ar" href={quickLookUrl} onClick={() => track("ar_open", product.handle)}><img className="quick-look-thumbnail" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="" /><span aria-hidden="true">✦</span><strong>{isDemoModel ? "Mở camera AR · khối 20 cm" : "Mở camera AR"}</strong><b>AR</b></a>
-          : <button type="button" className="mobile-ar-button" onClick={openRoomPreview} disabled={modelError || !modelReady}><span aria-hidden="true">✦</span><strong>{modelError ? "3D đang được xử lý" : modelReady ? isDemoModel ? "Ướm khối mẫu 20 cm" : "Ướm đèn trong phòng" : "Đang chuẩn bị 3D…"}</strong><b>AR</b></button>)}
+        {mediaMode === "model" && hasModel && <button type="button" className="mobile-ar-button" onClick={openRoomPreview} disabled={modelError || !modelReady}><span aria-hidden="true">✦</span><strong>{modelError ? "3D đang được xử lý" : modelReady ? isDemoModel ? "Ướm khối mẫu 20 cm" : "Ướm đèn trong phòng" : "Đang chuẩn bị 3D…"}</strong><b>AR</b></button>}
         {mediaMode === "model" && arMessage && <p className="mobile-ar-message" aria-live="polite">{arMessage}</p>}
       </div>
       <div className="pdp-info">
